@@ -19,7 +19,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          pip install -r api/requirements.txt
+          pip install -r web-portal/api/requirements.txt
 
       - name: Create Dummy Config Env for GitHub
         env:
@@ -28,13 +28,13 @@ jobs:
           # Vercel env'leri zaten webhook üzerinden tetikleyecek,
           # ancak GitHub'da da firebase ve telegram yetkileri için
           # secret'ları ayarlayacağız.
-          echo "TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}" >> api/config.env
-          echo "TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}" >> api/config.env
-          echo "GEMINI_API_KEYS=${{ secrets.GEMINI_API_KEYS }}" >> api/config.env
-          echo "$FIREBASE_SECRET" > api/serviceAccountKey.json
+          echo "TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}" >> web-portal/api/config.env
+          echo "TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}" >> web-portal/api/config.env
+          echo "GEMINI_API_KEYS=${{ secrets.GEMINI_API_KEYS }}" >> web-portal/api/config.env
+          echo "$FIREBASE_SECRET" > web-portal/api/serviceAccountKey.json
 
       - name: Run Telegram Worker
         env:
           PAYLOAD_JSON: ${{ toJson(github.event.client_payload) }}
         run: |
-          python api/github_worker.py
+          python web-portal/api/github_worker.py
