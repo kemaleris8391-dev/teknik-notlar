@@ -137,25 +137,32 @@ def call_gemini(prompt):
 
 def send_message(chat_id, text, reply_markup=None):
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-    payload = {
-        "chat_id": str(chat_id),
-        "text": text,
-        "parse_mode": "HTML",
-        "disable_web_page_preview": True
-    }
-    if reply_markup:
-        payload["reply_markup"] = reply_markup
-    try:
-        response = requests.post(url, json=payload, timeout=10)
-        if not response.ok:
-            print(f"Telegram API Error: {response.text}", flush=True)
-            # Eğer HTML tag hatası varsa (400), parse_mode olmadan tekrar dene
-            if response.status_code == 400 and "parse entities" in response.text.lower():
-                print("Falling back to plain text mode...", flush=True)
-                payload.pop("parse_mode", None)
-                requests.post(url, json=payload, timeout=10)
-    except Exception as e:
-        print(f"Error sending message: {e}", flush=True)
+    
+    # Telegram limit is 4096 chars. Split into chunks of 4000.
+    chunks = [text[i:i+4000] for i in range(0, len(text), 4000)]
+    
+    for idx, chunk in enumerate(chunks):
+        payload = {
+            "chat_id": str(chat_id),
+            "text": chunk,
+            "parse_mode": "HTML",
+            "disable_web_page_preview": True
+        }
+        # Attach markup only to the last chunk
+        if reply_markup and idx == len(chunks) - 1:
+            payload["reply_markup"] = reply_markup
+            
+        try:
+            response = requests.post(url, json=payload, timeout=10)
+            if not response.ok:
+                print(f"Telegram API Error: {response.text}", flush=True)
+                # Eğer HTML tag hatası varsa (400), parse_mode olmadan tekrar dene
+                if response.status_code == 400 and "parse entities" in response.text.lower():
+                    print("Falling back to plain text mode...", flush=True)
+                    payload.pop("parse_mode", None)
+                    requests.post(url, json=payload, timeout=10)
+        except Exception as e:
+            print(f"Error sending message: {e}", flush=True)
 
 def edit_message(chat_id, message_id, text, reply_markup=None):
     url = f"https://api.telegram.org/bot{TOKEN}/editMessageText"
