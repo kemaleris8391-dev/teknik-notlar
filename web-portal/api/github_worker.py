@@ -94,17 +94,13 @@ def call_gemini(prompt):
     for key in keys_pool[:3]:
         try:
             client = genai.Client(api_key=key)
-            model = "gemma-4-31b-it"
+            # Gemini 2.5 Pro 
+            model = "gemini-2.5-pro"
             contents = [
                 types.Content(role="user", parts=[types.Part.from_text(text=prompt)])
             ]
             
-            # HIGH Thinking Mode Enabled - GitHub Actions has 6 hours!
-            generate_content_config = types.GenerateContentConfig(
-                thinking_config=types.ThinkingConfig(
-                    thinking_level="HIGH",
-                )
-            )
+            generate_content_config = types.GenerateContentConfig()
 
             response_text = ""
             for chunk in client.models.generate_content_stream(
@@ -116,9 +112,9 @@ def call_gemini(prompt):
                     response_text += chunk.text
             
             if response_text:
-                return response_text + "\n\n*(Model: gemma-4-31b-it - GitHub Actions)*"
+                return response_text + "\n\n*(Model: gemini-2.5-pro - GitHub Actions)*"
         except Exception as e:
-            print(f"GenAI SDK request failed for gemma: {e}")
+            print(f"GenAI SDK request failed for gemini-2.5-pro: {e}", flush=True)
             
     for key in keys_pool[:3]:
         try:
@@ -146,9 +142,16 @@ def send_message(chat_id, text, reply_markup=None):
     if reply_markup:
         payload["reply_markup"] = reply_markup
     try:
-        requests.post(url, json=payload, timeout=10)
+        response = requests.post(url, json=payload, timeout=10)
+        if not response.ok:
+            print(f"Telegram API Error: {response.text}", flush=True)
+            # Eğer HTML tag hatası varsa (400), parse_mode olmadan tekrar dene
+            if response.status_code == 400 and "parse entities" in response.text.lower():
+                print("Falling back to plain text mode...", flush=True)
+                payload.pop("parse_mode", None)
+                requests.post(url, json=payload, timeout=10)
     except Exception as e:
-        print(f"Error sending message: {e}")
+        print(f"Error sending message: {e}", flush=True)
 
 def edit_message(chat_id, message_id, text, reply_markup=None):
     url = f"https://api.telegram.org/bot{TOKEN}/editMessageText"
@@ -473,7 +476,7 @@ if __name__ == "__main__":
         exit(1)
         
     payload_str = os.getenv("PAYLOAD_JSON", "{}")
-    print("Gelen Payload:", payload_str)
+    print("Gelen Payload:", payload_str, flush=True)
     try:
         update = json.loads(payload_str)
         if "message" in update:
