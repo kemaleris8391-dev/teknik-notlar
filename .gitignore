@@ -1,0 +1,34 @@
+# Python sanal ortamı ve önbellekler
+backend-scripts/venv/
+**/__pycache__/
+**/*.pyc
+backend-scripts/news_db.json
+backend-scripts/scheduler_config.json
+
+# Firebase özel anahtarı ve yerel ayarlar
+backend-scripts/firebase_credentials.json
+backend-scripts/.env
+web-portal/.env
+web-portal/api/config.env
+web-portal/api/serviceAccountKey.json
+web-portal/.firebase/
+web-portal/dist/
+web-portal/node_modules/
+
+# Sistem dosyaları
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Vercel serverless triggers
+
+# Backups
+_backups/
+SOURCE_CODE_BACKUP.md
+
+.vercel
+
+backend-scripts/prompts_config.json
+
+# Scratch files
+scratch/
