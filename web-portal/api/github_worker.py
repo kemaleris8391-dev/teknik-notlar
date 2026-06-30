@@ -94,13 +94,17 @@ def call_gemini(prompt):
     for key in keys_pool[:3]:
         try:
             client = genai.Client(api_key=key)
-            # Gemini 2.5 Pro 
-            model = "gemini-2.5-pro"
+            model = "gemma-4-31b-it"
             contents = [
                 types.Content(role="user", parts=[types.Part.from_text(text=prompt)])
             ]
             
-            generate_content_config = types.GenerateContentConfig()
+            # HIGH Thinking Mode Enabled - GitHub Actions has 6 hours!
+            generate_content_config = types.GenerateContentConfig(
+                thinking_config=types.ThinkingConfig(
+                    thinking_level="HIGH",
+                )
+            )
 
             response_text = ""
             for chunk in client.models.generate_content_stream(
@@ -112,9 +116,9 @@ def call_gemini(prompt):
                     response_text += chunk.text
             
             if response_text:
-                return response_text + "\n\n*(Model: gemini-2.5-pro - GitHub Actions)*"
+                return response_text + "\n\n*(Model: gemma-4-31b-it - GitHub Actions)*"
         except Exception as e:
-            print(f"GenAI SDK request failed for gemini-2.5-pro: {e}", flush=True)
+            print(f"GenAI SDK request failed for gemma: {e}", flush=True)
             
     for key in keys_pool[:3]:
         try:
